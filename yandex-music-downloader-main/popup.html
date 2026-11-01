@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="header">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffdb4d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <h1>Music Downloader</h1>
+    </div>
+
+    <div id="no-track" class="status-message">
+      <p>Откройте <strong>Яндекс Музыку</strong> и включите трек,<br>или вставьте ссылку ниже.</p>
+    </div>
+
+    <div id="current-track" class="track-info" style="display: none;">
+      <div class="track-details">
+        <div id="track-title" class="title">—</div>
+        <div id="track-artist" class="artist">—</div>
+      </div>
+      <button id="download-btn" class="download-btn" title="Скачать текущий трек">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="status" class="status" style="display: none;"></div>
+
+    <div class="paste-section">
+      <div class="paste-label">Скачать по ссылке</div>
+      <input type="text" id="url-input" placeholder="вставьте ссылку (трек / альбом / плейлист)" autocomplete="off" spellcheck="false">
+      <div id="url-hint" class="url-hint"></div>
+      <button id="paste-btn" class="paste-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Скачать
+      </button>
+    </div>
+
+    <div id="paste-progress" class="paste-progress" style="display: none;">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div id="progress-text" class="progress-text">—</div>
+    </div>
+
+    <div class="setting-row quality-row">
+      <label class="toggle-label" for="quality-select">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        Качество <span class="muted">(Я.Музыка)</span>
+      </label>
+      <select id="quality-select" class="quality-select">
+        <option value="auto">Авто — FLAC если есть, иначе MP3 320</option>
+        <option value="flac">FLAC (lossless, нужен Я.Плюс)</option>
+        <option value="mp3-320">MP3 320 kbps</option>
+      </select>
+    </div>
+
+    <div class="setting-row quality-row" id="flac-format-row">
+      <label class="toggle-label" for="flac-native-toggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        FLAC → нативный <code>.flac</code>
+      </label>
+      <input type="checkbox" id="flac-native-toggle" class="toggle-check" checked>
+    </div>
+
+    <div class="setting-row quality-row" id="lyrics-row">
+      <label class="toggle-label" for="lyrics-toggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="18" y2="18"/></svg>
+        Сохранять текст песни <span class="muted">(Я.Музыка)</span>
+      </label>
+      <input type="checkbox" id="lyrics-toggle" class="toggle-check">
+    </div>
+
+    <details class="quality-help">
+      <summary>что выбрать?</summary>
+      <div class="quality-help-body">
+        <p><b>Авто</b> — FLAC если Плюс + у трека есть lossless, иначе MP3 320. Рекомендую.</p>
+        <p><b>FLAC</b> — lossless (CD-качество 16/44.1) с обложкой и тегами.</p>
+        <p><b>MP3 320</b> — ~10 МБ. Работает у всех (даже без Плюса).</p>
+        <p style="margin-top:8px;">
+          <b>FLAC → нативный .flac</b> (галка вкл): расширение переупаковывает FLAC-в-MP4 в настоящий <code>.flac</code> прямо в браузере — без потери качества (аудио бит-в-бит то же). Открывается в спектрографах и FLAC-тулзах.
+        </p>
+        <p style="color: rgba(255,255,255,0.4)">
+          Галка выкл → сохраняется как <code>.m4a</code> (тот же lossless, чуть быстрее, играется везде).
+        </p>
+      </div>
+    </details>
+
+    <div class="setting-row">
+      <label class="toggle-label" for="save-as-toggle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Выбирать папку
+      </label>
+      <input type="checkbox" id="save-as-toggle" class="toggle-check">
+    </div>
+
+    <details class="token-section" id="token-section">
+      <summary>
+        <span id="token-status" class="token-status">⚠ Токен Я.Музыки не установлен</span>
+      </summary>
+      <div class="token-body">
+        <p class="token-hint">
+          <b>⚠ Сначала <a href="https://music.yandex.ru" target="_blank" style="color:#ffdb4d">залогинься на music.yandex.ru</a></b> —
+          без аккаунта Яндекс не отдаёт треки.
+        </p>
+        <p class="token-hint">
+          С мая 2026 Я.Музыка снесла старый веб-API. Нужен <b>OAuth-токен</b>.
+          Если залогинен на music.yandex.ru — расширение поймает токен сам когда ты откроешь
+          любой трек/альбом. Не получилось — вставь вручную:
+        </p>
+        <button id="get-token-btn" class="token-link-btn">Открыть страницу для получения токена</button>
+        <p class="token-hint-small">
+          После клика откроется страница Яндекса. Залогинься, нажми «Разрешить».
+          После редиректа расширение <b>сам поймает токен</b> из URL — увидишь зелёную галку ✓ на иконке.
+          Если не поймало — вставь токен или полный URL ниже:
+        </p>
+        <input type="text" id="token-input" placeholder="токен ИЛИ полный URL с #access_token=..." autocomplete="off" spellcheck="false">
+        <div class="token-actions">
+          <button id="token-save-btn" class="token-save-btn">Сохранить</button>
+          <button id="token-clear-btn" class="token-clear-btn">Очистить</button>
+        </div>
+      </div>
+    </details>
+
+    <div class="footer">v3.2 · Я.Музыка · Bandcamp · SoundCloud</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
