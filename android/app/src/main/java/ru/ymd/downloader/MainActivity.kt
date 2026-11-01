@@ -252,13 +252,21 @@ class MainActivity : ComponentActivity() {
         if (tracks.isEmpty()) throw Exception("Треки не найдены")
 
         val downloader = Downloader(this)
+        val history = DownloadHistory(this)
         var done = 0
+        var skipped = 0
         var failed = 0
 
         tracks.forEachIndexed { index, track ->
             val label = track.baseName()
             onStatus("${index + 1} из ${tracks.size}: $label")
             try {
+                if (history.isDownloaded(track)) {
+                    skipped++
+                    onLog("↷ Уже скачан, пропускаю: $label")
+                    onProgress((index + 1).toFloat() / tracks.size)
+                    return@forEachIndexed
+                }
                 val res = downloader.downloadTrack(
                     track, token, quality, nativeFlac, lyrics,
                     onBytes = { read, total ->
@@ -267,6 +275,7 @@ class MainActivity : ComponentActivity() {
                         onProgress(base + step)
                     }
                 )
+                history.markDownloaded(track)
                 done++
                 onLog("✓ ${res.fileName}")
             } catch (e: Exception) {
@@ -276,8 +285,8 @@ class MainActivity : ComponentActivity() {
             onProgress((index + 1).toFloat() / tracks.size)
         }
 
-        return if (failed == 0) "Готово: скачано $done из ${tracks.size}"
-        else "Скачано $done из ${tracks.size}, с ошибкой: $failed"
+        return if (failed == 0) "Готово: скачано $done, пропущено $skipped из ${tracks.size}"
+        else "Скачано $done, пропущено $skipped из ${tracks.size}, с ошибкой: $failed"
     }
 
     /** Из текста «Поделиться» вытаскиваем именно адрес. */
